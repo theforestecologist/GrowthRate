@@ -55,17 +55,20 @@ Some follow-up questions:
 
         #Run bootstrap analysis to calculate confidence intervals:
           boot <- bootMer(rm2, predict, nsim = 10000, seed = 73189, re.form = NA)   #Not sure which FUN to use, so I just used pred().
-            boot$mle$sigma
-            #[1] 1.918978    ## <-- Am I correct that this is the standard error?? 
 
         #Calculate confidence intervals
-          CI.lo <- pred - (boot$mle$sigma * 1.96)
-          CI.hi <- pred + (boot$mle$sigma * 1.96)
+          #I found 2 different approaches to calculating CI, which both give me near identical CIs.... 
+            #1. Quantile Approach
+              CI.lower = apply(boot$t, 2, function(x) as.numeric(quantile(x, probs=.025, na.rm=TRUE)))
+              CI.upper = apply(boot$t, 2, function(x) as.numeric(quantile(x, probs=.975, na.rm=TRUE)))
+            #2. standard Error Approach
+              #Pulling standard errors from bootMer object and converting to CIs via CI = mean +/- 1.96*SE:
+              std.err <- apply(merBoot$t, 2, sd)
+              CI.lower <- pred - std.err*1.96
+              CI.upper <- pred + std.err*1.96
 
-
-       #Q: IS this an ok approach??  (have you ever used bootMer before?)
+       #Q: Are either/both of these an ok approach??  (have you ever used bootMer before?)
           #-> I'm very unsure about selecting a function in bootMer and wonder if choosing `predict` gives me totally wrong answers
-
 
 #3. Graphing trend lines and CIs
 
@@ -81,7 +84,7 @@ Some follow-up questions:
       p_all <- p_trends + geom_line(aes(x = Year,y = GrowthRate,group = Plot), alpha = 0.2)
 
     #Include confidence intervals:
-      p_all + geom_ribbon(aes(ymin = CIl, ymax = CIh),size=2, alpha = 0.03, linetype = 0)
+      p_all + geom_ribbon(aes(ymin = CI.lower, ymax = CI.upper),size=2, alpha = 0.03, linetype = 0)
 
     #Q: Does this look right?  (I would have expected the CI ribbon to be non-symmetrical; not rectangular ribbons...)
     #Q: How do I interpret this exactly? 
