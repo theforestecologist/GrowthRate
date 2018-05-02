@@ -86,7 +86,7 @@ Some follow-up questions:
     #Include confidence intervals:
       p_all + geom_ribbon(aes(ymin = CI.lower, ymax = CI.upper),size=2, alpha = 0.03, linetype = 0)
 
-    #Q: Does this look right?  (I would have expected the CI ribbon to be non-symmetrical; not rectangular ribbons...)
+    #Q: Does this look right?  
     #Q: How do I interpret this exactly? 
       #->  the trends look clear, but with such wide CIs do I simply say a non-sloping line could also fit within the CIs so I cannot make a claim abotu the trend?? 
 
@@ -96,3 +96,22 @@ Some follow-up questions:
     #Q: I stil feel weird not having a significance test. How do I formally report the validity/quality of my model?
 
     #Q: How do I formally report my trend?  (e.g., "GrowthRate has linearly increased since 1930 based on.....")
+    
+    
+    #My thoughts: do I do this using model estimates and confidence intervals???
+    
+      coef(summary(rm2))[ , "Estimate"]
+      confint(rm2,method='boot',nsim=10000)
+      
+      #As long as my CI don't cross 0, does that mean I have a "significant" predictor?
+      
+      #  					                          Estimate	2.50%	97.50%
+      # (Intercept)				                    7.19		 6.6	 7.66
+      # I(Year - 1970)				               -0.03		-0.03	-0.02
+      # factor(PlotType)Hard			           -2.68		-3.09	-1.99
+      # I(Year - 1970):factor(PlotType)Hard   0.05		 0.04	 0.08
+      
+      #So, in the above results, would I say that "Successional plots had a significant decrease in growth rate in time (Esitimate = -0.03 [95% CI = -0.03, -0.02])"?, or is there some other approach for reporting this info?
+      
+       #also, I'm still unsure if this is "an annual decrease in growth rate of 0.03 relative to 1970", or "a decreae in growth rate of 0.03/year" (more generally, but with my data just so happening to be organized with 1970 as a centered year)? 
+      
