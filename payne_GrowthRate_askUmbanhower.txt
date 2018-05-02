@@ -51,7 +51,7 @@ Some follow-up questions:
       #So I tried lme4's recommended approach:
 
         #Predict values
-          pred <- predict(rm2.reml,re.form = NA)
+          pred <- predict(rm2,re.form = NA)
 
         #Run bootstrap analysis to calculate confidence intervals:
           boot <- bootMer(rm2, predict, nsim = 10000, seed = 73189, re.form = NA) 
