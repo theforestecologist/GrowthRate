@@ -1,0 +1,94 @@
+#Load Data:
+  bfd2 <- read.csv(url("http://www.theforestecologist.com/wp-content/uploads/2018/04/bfd2.csv"), head = T)
+    bfd2$Plot <- as.factor(bfd2$Plot)
+    bfd2$PlotType <- as.factor(bfd2$PlotType)
+
+#Remove first sample year from each plot (b/c based on poor assumptions)
+  bfd3 <- bfd2[duplicated(bfd2$Plot),]
+
+#Reminder of important variables:
+  #GrowthRate = change in biomass between sampling periods PLUS losses in Biomass
+  #PlotType: either successional ("Succ") or hardwood ("Hard") forest type
+  #Plot: 37 unique plot IDs
+  #Year: 1933 - 2013
+
+#Load lme4 package
+  library(lme4)
+
+
+##########################################################################################
+
+Some follow-up questions:
+
+#1. Model Selection
+
+    #I compared the AIC of my best fixed effect model ("lm3") and my best mixed effect model ("rm2").  lm3 has lower AIC, but wayyy higher df. 
+
+      lm3 <- lm(GrowthRate ~ I(Year-1970) + factor(Plot)*I(Year-1970), data = bfd3)
+      rm2 <- lmer(GrowthRate ~ I(Year-1970) * factor(PlotType) + (1 + I(Year-1970)|Plot), data = bfd3, REML = FALSE)
+
+      # AIC output:
+      #     df      AIC
+      # lm3 75 2088.182
+      # rm2  8 2108.450
+
+    #When we chatted, you mentioned that the random slopes for Plot was a more sensible approach than Plot*Year interaction, 
+    #and the degree of difference in complexity also has me wondering if the mixed model is the way to go...
+
+    #Q: Should I still go with the mixed model, or do I just let AIC alone dictate my decision?
+    #Q: If I go with mixed model, how do I formally reason to make that choice?
+
+
+#2. Predict and confidence intervals
+
+    #you suggested for me to use predict() to determine my annual trend and to calculate CIs
+
+      #I tried:    predict(rm2,re.form = NA,se.fit = T)
+         #However, se.fit doesn't work using predict.merMod [see: http://127.0.0.1:20459/library/lme4/html/predict.merMod.html]
+             #"There is no option for computing standard errors of predictions because it is difficult to define an  efficient method that incorporates uncertainty in the variance parameters; 
+             #...we recommend bootMer for this task." 
+
+      #So I tried lme4's recommended approach:
+
+        #Predict values
+          pred <- predict(rm2.reml,re.form = NA)
+
+        #Run bootstrap analysis to calculate confidence intervals:
+          boot <- bootMer(rm2, predict, nsim = 10000, seed = 73189, re.form = NA) 
+            boot$mle$sigma
+            #[1] 1.918978    ## <-- Am I correct that this is the standard error?? 
+
+        #Calculate confidence intervals
+          CI.lo <- pred - (boot$mle$sigma * 1.96)
+          CI.hi <- pred + (boot$mle$sigma * 1.96)
+
+
+       #Q: IS this an ok approach??  (have you ever used bootMer before?)
+
+
+#3. Graphing trend lines and CIs
+
+    library(ggplot2)
+ 
+    #Add model trend lines:
+      p_trends <- ggplot(bfd3, aes(x = Year, y = GrowthRate, colour = PlotType)) + theme_bw() +
+        geom_line(aes(y = pred),size=2) +
+        ylab('Growth Rate (Mg/ha/yr)') + 
+        xlab('Year') 
+
+    #Add shaded lines showing actual plot data
+      p_all <- p_trends + geom_line(aes(x = Year,y = GrowthRate,group = Plot), alpha = 0.2)
+
+    #Include confidence intervals:
+      p_all + geom_ribbon(aes(ymin = CIl, ymax = CIh),size=2, alpha = 0.03, linetype = 0)
+
+    #Q: Does this look right?  (I would have expected the CI ribbon to be non-symmetrical; not rectangular ribbons...)
+    #Q: How do I interpret this exactly? 
+      #->  the trends look clear, but with such wide CIs do I simply say a non-sloping line could also fit within the CIs so I cannot make a claim abotu the trend?? 
+
+
+#4. Where to next?
+
+    #Q: I stil feel weird not having a significance test. How do I formally report the validity/quality of my model?
+
+    #Q: How do I formally report my trend?  (e.g., "GrowthRate has linearly increased since 1930 based on.....")
