@@ -54,7 +54,7 @@ Some follow-up questions:
           pred <- predict(rm2,re.form = NA)
 
         #Run bootstrap analysis to calculate confidence intervals:
-          boot <- bootMer(rm2, predict, nsim = 10000, seed = 73189, re.form = NA) 
+          boot <- bootMer(rm2, predict, nsim = 10000, seed = 73189, re.form = NA)   #Not sure which FUN to use, so I just used pred().
             boot$mle$sigma
             #[1] 1.918978    ## <-- Am I correct that this is the standard error?? 
 
@@ -64,6 +64,7 @@ Some follow-up questions:
 
 
        #Q: IS this an ok approach??  (have you ever used bootMer before?)
+          #-> I'm very unsure about selecting a function in bootMer and wonder if choosing `predict` gives me totally wrong answers
 
 
 #3. Graphing trend lines and CIs
