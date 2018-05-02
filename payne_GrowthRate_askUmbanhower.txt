@@ -100,7 +100,7 @@ Some follow-up questions:
     
     #My thoughts: do I do this using model estimates and confidence intervals???
     
-      coef(summary(rm2))[ , "Estimate"]
+      fixef(rm2)
       confint(rm2,method='boot',nsim=10000)
       
       #As long as my CI don't cross 0, does that mean I have a "significant" predictor?
