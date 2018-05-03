@@ -1,4 +1,6 @@
-1. When Calculate bootstrap F values and F-test:
+#NEW QUESTIONS
+
+1. Re: Calculating bootstrap F values and F-test:
 
   A. Does it matter if I use REML = T or F?  [b/c I've converted rm2 to rm2.reml (with REML = T) for better estimates]
 
@@ -13,25 +15,39 @@
      [1] 0.5094
 
 
-2. calculate the bootstrap CI's for the slope in successional and hardwood
+2. Re: calculating the bootstrap CI's for the slope in successional and hardwood plots
 
   A. Does it matter if I use bootMer or confint to calculate CIs?
    
      > If I use confint values from estimates, can I simply sum 2.5% (or 97.5%) CI with I(Year-1970) estimate as I did with the interaction estimate?? 
+     
+     Example:  can I say CIs for hardwood slope is -0.03 + 0.04?
+     
+      #                                        Estimate 2.50% 97.50%
+      # (Intercept)                               7.19     6.6    7.66
+      # I(Year - 1970)                           -0.03    -0.03   -0.02
+      # factor(PlotType)Hard                     -2.68    -3.09   -1.99
+      # I(Year - 1970):factor(PlotType)Hard       0.05    0.04    0.08
+
 
   B. "MLE" as in "maximum likelihood estimation"?
 
 
 3. Why do you say I should refit my model without an intercept?
 
+  A. How could I come to this conclusion myself?
+  
+  B. Is this valid?? (I assume yes, of course, but why?)
 
 #################################################
 
 4. Unrelated to your repsonses, but extending my code from before:
 
-  Q: If a model has better AIC but the added variable(s) are not significant (i.e., their upr and lwr CIs cross 0), do I not use that model, or do I simply not try to make any inferences regarding the "non-significant" predictors?
+  Q: If a model has better AIC but the added variable(s) are not significant (i.e., their upr and lwr CIs cross 0), 
+  do I not use that model, or do I simply not try to make any inferences regarding the "non-significant" predictors?
     #See  mod.estSOM.exp   below for example...
 
+######
 
   #Set up:
 
@@ -60,7 +76,9 @@
       rm8 <- lmer(GrowthRate ~ I(Year-1970) * factor(PlotType) + I(Year-1970) * factor(ExprStat) + (1 + I(Year-1970)|Plot), data = bfd6.e,  REML = FALSE)
 
   #Fit new model with important soil characteristics:
-    rme.sand_om_mg <- lmer(GrowthRate ~ I(Year - 1970) * factor(PlotType) + I(Year - 1970) * factor(ExprStat) + I(Year - 1970) * Sand_A + I(Year - 1970) * OM_A + I(Year - 1970) * Mg_ppm_A + (1 + I(Year - 1970) | Plot), data = bfd6.e,  REML = FALSE, lmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+    rme.sand_om_mg <- lmer(GrowthRate ~ I(Year - 1970) * factor(PlotType) + I(Year - 1970) * factor(ExprStat) +  
+      I(Year - 1970) * Sand_A + I(Year - 1970) * OM_A + I(Year - 1970) * Mg_ppm_A + (1 + I(Year - 1970) | Plot), 
+      data = bfd6.e,  REML = FALSE, lmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 
   AIC(rm2,rm8,rme.sand_om_mg)
 
@@ -75,5 +93,5 @@
    mod.estSOM.exp  #Estimate + CIs for each predictor
  
 
-  #Follow-up Q: should I be concerned with so many degrees of freedom in this more complex model?
+  # Follow-up Q: should I be concerned with so many degrees of freedom in this more complex model?
     #When do I determine I have used too many dfs?
