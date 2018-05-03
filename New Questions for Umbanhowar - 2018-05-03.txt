@@ -1,0 +1,79 @@
+1. When Calculate bootstrap F values and F-test:
+
+  A. Does it matter if I use REML = T or F?  [b/c I've converted rm2 to rm2.reml (with REML = T) for better estimates]
+
+  B. I got many convergence warnings...I assume these are not to be ignored?
+
+     50: In checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv,  ... :
+       Model failed to converge: degenerate  Hessian with 1 negative eigenvalues
+
+  C. What do I do with this sum?
+
+     > sum(actualf<=bootf)/length(bootf)
+     [1] 0.5094
+
+
+2. calculate the bootstrap CI's for the slope in successional and hardwood
+
+  A. Does it matter if I use bootMer or confint to calculate CIs?
+   
+     > If I use confint values from estimates, can I simply sum 2.5% (or 97.5%) CI with I(Year-1970) estimate as I did with the interaction estimate?? 
+
+  B. "MLE" as in "maximum likelihood estimation"?
+
+
+3. Why do you say I should refit my model without an intercept?
+
+
+#################################################
+
+4. Unrelated to your repsonses, but extending my code from before:
+
+  Q: If a model has better AIC but the added variable(s) are not significant (i.e., their upr and lwr CIs cross 0), do I not use that model, or do I simply not try to make any inferences regarding the "non-significant" predictors?
+    #See  mod.estSOM.exp   below for example...
+
+
+  #Set up:
+
+    #Load Data:
+      bfd2 <- read.csv(url("http://www.theforestecologist.com/wp-content/uploads/2018/04/bfd2.csv"), head = T)
+        bfd2$Plot <- as.factor(bfd2$Plot)
+        bfd2$PlotType <- as.factor(bfd2$PlotType)
+
+    #Remove first sample year from each plot (b/c based on poor assumptions)
+      bfd3 <- bfd2[duplicated(bfd2$Plot),]
+
+    #Add factor variable for experimental manipulation:
+      expr.plots <- c(4,6,7,13,16,18,20,22,24,25,29,37,39,41,42,43,49,51)
+      cont.plots <- c(5,10,12,14,15,17,19,21,23,26,28,35,36,40,44,50,123:125)
+      exp.var <- data.frame(Plot = sort(unique(bfd3$Plot)),ExprStat = ifelse(sort(unique(bfd3$Plot)) %in% expr.plots, 'E', 'C')) 
+      bfd6 <- merge(bfd3, exp.var, by = 'Plot')
+
+    #Scale env variables:
+      bfd6.e <- bfd6
+        bfd6.e[,(c(30:95)[!(c(30:95) %in% c(32,34,35))])]  <- scale( bfd6[,(c(30:95)[!(c(30:95) %in% c(32,34,35))])])
+
+    library(lme4)
+
+    #re-Fit old "best" models:
+      rm2 <- lmer(GrowthRate ~ I(Year-1970) * factor(PlotType) + (1 + I(Year-1970)|Plot), data = bfd6.e, REML = FALSE) 
+      rm8 <- lmer(GrowthRate ~ I(Year-1970) * factor(PlotType) + I(Year-1970) * factor(ExprStat) + (1 + I(Year-1970)|Plot), data = bfd6.e,  REML = FALSE)
+
+  #Fit new model with important soil characteristics:
+    rme.sand_om_mg <- lmer(GrowthRate ~ I(Year - 1970) * factor(PlotType) + I(Year - 1970) * factor(ExprStat) + I(Year - 1970) * Sand_A + I(Year - 1970) * OM_A + I(Year - 1970) * Mg_ppm_A + (1 + I(Year - 1970) | Plot), data = bfd6.e,  REML = FALSE, lmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+
+  AIC(rm2,rm8,rme.sand_om_mg)
+
+  #Calculate estimate confidence intervals
+    ci.estSOM.exp0 <- confint(rme.sand_om_mg.reml, method='boot', nsim=1000,)
+      ci.estSOM.exp <- ci.estSOM.exp0[c(grep('(Intercept)', rownames(ci.estSOM.exp0)):dim(ci.estSOM.exp0)[1]),]
+
+  #view coefficients:
+   mod.estSOM.exp <- data.frame(Estimate = fixef(rme.sand_om_mg.reml), Lower = ci.estSOM.exp[,1], Upper = ci.estSOM.exp[,2])
+      rownames(mod.estSOM.exp) <- names(fixef(rme.sand_om_mg.reml))
+
+   mod.estSOM.exp  #Estimate + CIs for each predictor
+ 
+
+  #Follow-up Q: should I be concerned with so many degrees of freedom in this more complex model?
+    #When do I determine I have used too many dfs?
