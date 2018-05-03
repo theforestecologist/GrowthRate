@@ -3,6 +3,8 @@
 1. Re: Calculating bootstrap F values and F-test:
 
   A. Does it matter if I use REML = T or F?  [b/c I've converted rm2 to rm2.reml (with REML = T) for better estimates]
+  
+   > The final value changes from 0.5317 for non-REML to 0.5094 for the model with REML
 
   B. I got many convergence warnings...I assume these are not to be ignored?
 
