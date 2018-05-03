@@ -19,9 +19,10 @@
 
   A. Does it matter if I use bootMer or confint to calculate CIs?
    
-     > If I use confint values from estimates, can I simply sum 2.5% (or 97.5%) CI with I(Year-1970) estimate as I did with the interaction estimate?? 
+     > If I use confint values from estimates, can I simply sum the 2.5% (or 97.5%) CI with the I(Year-1970) estimate 
+     as I did with the interaction estimate?? 
      
-     Example:  can I say CIs for hardwood slope is -0.03 + 0.04?
+     Example:  can I say lower CI for hardwood slope is (-0.03 + 0.04) or 0.01 and upper CI is 0.05?
      
       #                                        Estimate 2.50% 97.50%
       # (Intercept)                               7.19     6.6    7.66
